@@ -1,0 +1,143 @@
+CREATE DATABASE [TechStore]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'TechStore', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\TechStore.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON 
+( NAME = N'TechStore_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\TechStore_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+GO
+
+-- 1. Создание таблицы Customers (Клиенты)
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY IDENTITY(1,1),
+    FirstName NVARCHAR(50) NOT NULL,
+    LastName NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(100) NOT NULL,
+    City NVARCHAR(100) NOT NULL
+);
+
+-- 2. Создание таблицы Products (Каталог товаров)
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY IDENTITY(1,1),
+    ProductName NVARCHAR(100) NOT NULL,
+    Category NVARCHAR(100) NOT NULL DEFAULT 'не назначенно',
+    Price DECIMAL(12,2) NOT NULL check (Price >= 0)
+);
+
+-- 3. Создание таблицы Orders (Заказы)
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY IDENTITY(1,1),
+    CustomerID INT NOT NULL,
+    OrderDate DATE NOT NULL ,
+    CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+-- 4. Создание таблицы OrderItems (Позиции заказа)
+CREATE TABLE OrderItems (
+    OrderItemID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL check (Quantity > 0) ,
+    Price DECIMAL(12,2) NOT NULL check (Price >= 0),
+    CONSTRAINT FK_OrderItems_Orders FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    CONSTRAINT FK_OrderItems_Products FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+GO
+
+--- ЗАПОЛНЕНИЕ ТАБЛИЦ ДАННЫМИ ---
+INSERT INTO TechStore.dbo.Customers ([CustomerID], [FirstName], [LastName], [Email], [City]) VALUES
+(1, N'Иван', N'Иванов', 'ivan@example.com', N'Москва'),
+(2, N'Пётр', N'Петров', 'petr@example.com', N'Санкт-Петербург'),
+(3, N'Анна', N'Смирнова', 'anna@example.com', N'Казань'),
+(4, N'Мария', N'Кузнецова', 'maria@example.com', N'Москва'),
+(5, N'Алексей', N'Попов', 'alexey@example.com', N'Екатеринбург'),
+(6, N'Елена', N'Васильева', 'elena@example.com', N'Новосибирск'),
+(7, N'Дмитрий', N'Соколов', 'dmitry@example.com', N'Москва'),
+(8, N'Ольга', N'Морозова', 'olga@example.com', N'Казань'),
+(9, N'Сергей', N'Волков', 'sergey@example.com', N'Екатеринбург'),
+(10, N'Наталья', N'Фёдорова', 'natalia@example.com', N'Санкт-Петербург');
+
+INSERT INTO TechStore.dbo.Products ([ProductID], [ProductName], [Category], [Price]) VALUES
+(1, N'Ноутбук Pro 14', N'Ноутбуки', 120000),
+(2, N'Ноутбук Air 13', N'Ноутбуки', 90000),
+(3, N'Монитор 27', N'Мониторы', 35000),
+(4, N'Монитор 24', N'Мониторы', 22000),
+(5, N'Клавиатура Механическая', N'Периферия', 8000),
+(6, N'Мышь Gaming', N'Периферия', 5000),
+(7, N'Наушники Pro', N'Аудио', 15000),
+(8, N'Веб-камера HD', N'Периферия', 7000),
+(9, N'SSD 1TB', N'Накопители', 10000),
+(10, N'SSD 2TB', N'Накопители', 18000),
+(11, N'HDD 2TB', N'Накопители', 9000),
+(12, N'Планшет 10', N'Планшеты', 30000),
+(13, N'Смартфон Pro', N'Смартфоны', 70000),
+(14, N'Смартфон Lite', N'Смартфоны', 40000),
+(15, N'Док-станция USB-C', N'Периферия', 12000);
+
+INSERT INTO TechStore.dbo.Orders ([OrderID], [CustomerID], [OrderDate]) VALUES
+(1001, 1, '2026-01-10'),
+(1002, 2, '2026-01-15'),
+(1003, 3, '2026-01-20'),
+(1004, 1, '2026-02-05'),
+(1005, 4, '2026-02-12'),
+(1006, 5, '2026-02-20'),
+(1007, 6, '2026-03-03'),
+(1008, 7, '2026-03-10'),
+(1009, 8, '2026-03-15'),
+(1010, 9, '2026-03-25'),
+(1011, 10, '2026-04-02'),
+(1012, 2, '2026-04-12'),
+(1013, 3, '2026-04-20'),
+(1014, 4, '2026-05-05'),
+(1015, 5, '2026-05-18'),
+(1016, 1, '2026-06-01'),
+(1017, 6, '2026-06-15'),
+(1018, 7, '2026-07-10'),
+(1019, 8, '2026-08-05'),
+(1020, 10, '2026-09-01');
+
+INSERT INTO TechStore.dbo.OrderItems (OrderItemID, OrderID, ProductID, Quantity, Price) VALUES
+(1, 1001, 1, 1, 120000),
+(2, 1001, 5, 1, 8000),
+(3, 1001, 6, 1, 5000),
+(4, 1002, 2, 1, 90000),
+(5, 1002, 7, 1, 15000),
+(6, 1003, 3, 2, 35000),
+(7, 1003, 5, 1, 8000),
+(8, 1004, 13, 1, 70000),
+(9, 1004, 9, 1, 10000),
+(10, 1005, 4, 1, 22000),
+(11, 1005, 8, 1, 7000),
+(12, 1005, 6, 2, 5000),
+(13, 1006, 12, 1, 30000),
+(14, 1006, 10, 1, 18000),
+(15, 1007, 1, 1, 120000),
+(16, 1007, 7, 1, 15000),
+(17, 1008, 2, 2, 90000),
+(18, 1008, 6, 1, 5000),
+(19, 1009, 13, 1, 70000),
+(20, 1009, 14, 1, 40000),
+(21, 1010, 3, 1, 35000),
+(22, 1010, 4, 1, 22000),
+(23, 1010, 5, 1, 8000),
+(24, 1011, 11, 1, 9000),
+(25, 1011, 9, 2, 10000),
+(26, 1012, 1, 1, 120000),
+(27, 1012, 15, 1, 12000),
+(28, 1013, 12, 2, 30000),
+(29, 1013, 8, 1, 7000),
+(30, 1014, 13, 1, 70000),
+(31, 1014, 7, 1, 15000),
+(32, 1015, 2, 1, 90000),
+(33, 1015, 10, 1, 18000),
+(34, 1016, 1, 1, 120000),
+(35, 1016, 3, 1, 35000),
+(36, 1017, 14, 1, 40000),
+(37, 1017, 6, 2, 5000),
+(38, 1018, 2, 1, 90000),
+(39, 1018, 5, 1, 8000),
+(40, 1019, 13, 1, 70000),
+(41, 1019, 9, 1, 10000),
+(42, 1020, 1, 1, 120000),
+(43, 1020, 15, 1, 12000);
+
